@@ -18,7 +18,7 @@ jobs:
           submodules: true
 
       - run: sudo apt-get update -q
-      - run: sudo apt-get install libopenal-dev xorg-dev libgl1-mesa-dev -y --allow-unauthenticated
+      - run: sudo apt-get install libopenal-dev xorg-dev libgl1-mesa-dev nasm -y --allow-unauthenticated
       - run: make -j2
 
       - name: ZIP Release
