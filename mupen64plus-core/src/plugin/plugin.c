@@ -394,9 +394,9 @@ void plugin_connect_rdp_api(enum rdp_plugin_type type)
 {
    switch (type)
    {
-      case RDP_PLUGIN_GLIDEN64:
+      //case RDP_PLUGIN_GLIDEN64:
       case RDP_PLUGIN_ANGRYLION:
-      case RDP_PLUGIN_PARALLEL:
+      //case RDP_PLUGIN_PARALLEL:
          current_rdp_type = type;
          break;
       case RSP_PLUGIN_NONE:
@@ -409,9 +409,9 @@ void plugin_connect_rsp_api(enum rsp_plugin_type type)
 {
    switch (type)
    {
-      case RSP_PLUGIN_HLE:
+      //case RSP_PLUGIN_HLE:
       case RSP_PLUGIN_CXD4:
-      case RSP_PLUGIN_PARALLEL:
+      //case RSP_PLUGIN_PARALLEL:
          current_rsp_type = type;
          break;
       case RSP_PLUGIN_NONE:
