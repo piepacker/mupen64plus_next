@@ -362,6 +362,17 @@ struct retro_core_option_definition option_defs_us[] = {
         "Off"
     },
     {
+        CORE_NAME "-EnableTexCoordBounds",
+        "Enable native-res boundaries for texture coordinates",
+        "(GLN64) Bound texture rectangle texture coordinates to the values they take in native resolutions. It prevents garbage due to fetching out of texture bounds, but can result in hard edges.",
+        {
+            {"False", NULL},
+            {"True", NULL},
+            {NULL, NULL},
+        },
+        "False"
+    },
+    {
         CORE_NAME "-EnableNativeResTexrects",
         "Native res. 2D texrects",
         "(GLN64) Render 2D texrects in native resolution to fix misalignment between parts of 2D image (example: Mario Kart driver selection portraits).",
@@ -823,6 +834,18 @@ struct retro_core_option_definition option_defs_us[] = {
         },
         "False"
     },
+    {
+        CORE_NAME "-GLideN64IniBehaviour",
+        "INI Behaviour",
+        "(GLN64) Specifies INI Settings behaviour. This should really only contain essential options. Changing this can and will break ROM's, if the correct options aren't set manually. Some options may only be set via INI (fbInfoDisabled).",
+        {
+            {"late", "Prioritize INI over Core Options"},
+            {"early", "Prioritize Core Options over INI"},
+            {"disabled", "Disable INI"},
+            {NULL, NULL},
+        },
+        "late"
+    },
 #ifdef HAVE_PARALLEL_RDP
     {
         CORE_NAME "-parallel-rdp-synchronous",
@@ -1283,6 +1306,7 @@ struct retro_core_option_definition option_defs_us[] = {
             {"none", NULL},
             {"memory", NULL},
             {"rumble", NULL},
+            {"transfer", NULL},
             {NULL, NULL},
         },
         "memory"
@@ -1295,6 +1319,7 @@ struct retro_core_option_definition option_defs_us[] = {
             {"none", NULL},
             {"memory", NULL},
             {"rumble", NULL},
+            {"transfer", NULL},
             {NULL, NULL},
         },
         "none"
@@ -1307,6 +1332,7 @@ struct retro_core_option_definition option_defs_us[] = {
             {"none", NULL},
             {"memory", NULL},
             {"rumble", NULL},
+            {"transfer", NULL},
             {NULL, NULL},
         },
         "none"
@@ -1319,6 +1345,7 @@ struct retro_core_option_definition option_defs_us[] = {
             {"none", NULL},
             {"memory", NULL},
             {"rumble", NULL},
+            {"transfer", NULL},
             {NULL, NULL},
         },
         "none"

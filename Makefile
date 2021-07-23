@@ -68,7 +68,8 @@ endif
 WITH_DYNAREC ?= $(ARCH)
 
 PIC = 1
-ifeq ($(ARCH), $(filter $(ARCH), i386 i686))
+# on 32bit Haiku the output of "uname -m" is "BePC"
+ifeq ($(ARCH), $(filter $(ARCH), i386 i686 BePC))
    WITH_DYNAREC = x86
    PIC = 0
 else ifeq ($(ARCH), $(filter $(ARCH), arm))
@@ -191,7 +192,7 @@ else ifeq ($(platform), libnx)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CPUOPTS := -g -march=armv8-a+crc -mtune=cortex-a57 -mtp=soft -mcpu=cortex-a57+crc+fp+simd
    PLATCFLAGS = -O3 -ffast-math -funsafe-math-optimizations -fPIE -I$(PORTLIBS)/include/ -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -specs=$(LIBNX)/switch.specs
-   PLATCFLAGS += $(INCLUDE) -D__SWITCH__=1 -DSWITCH -DHAVE_LIBNX -D_GLIBCXX_USE_C99_MATH_TR1 -D_LDBL_EQ_DBL -funroll-loops
+   PLATCFLAGS += $(INCLUDE) -D__SWITCH__=1 -DSWITCH -DHAVE_LIBNX -D_GLIBCXX_USE_C99_MATH_TR1 -D_LDBL_EQ_DBL -funroll-loops #-DM64P_NETPLAY
    CXXFLAGS += -fno-rtti -std=gnu++11
    COREFLAGS += -DOS_LINUX -DEGL
    GLES = 0
@@ -259,6 +260,9 @@ else ifneq (,$(findstring odroid,$(platform)))
       else
          CPUFLAGS += -mcpu=cortex-a9 -mfpu=neon
       endif
+      # ODROIDGOA
+   else ifneq (,$(findstring ODROIDGOA,$(BOARD)))
+      CPUFLAGS += -march=armv8-a+crc -mfpu=neon-fp-armv8 -mcpu=cortex-a35 -mtune=cortex-a35
    else
       # ODROID-U2, -U3, -X & -X2
       CPUFLAGS += -mcpu=cortex-a9 -mfpu=neon
@@ -280,16 +284,23 @@ else ifneq (,$(findstring AMLG,$(platform)))
          CPUFLAGS += -mtune=cortex-a53
       endif
       GLES3 = 1
-      GL_LIB := -lGLESv3
    else ifneq (,$(findstring AMLGX,$(platform)))
       CPUFLAGS += -mtune=cortex-a53
       ifneq (,$(findstring AMLGXM,$(platform)))
          GLES3 = 1
-         GL_LIB := -lGLESv3
       else
          GLES = 1
-         GL_LIB := -lGLESv2
       endif
+   endif
+
+   ifneq (,$(findstring mesa,$(platform)))
+      COREFLAGS += -DEGL_NO_X11
+   endif
+
+   ifneq (,$(findstring mali,$(platform)))
+      GL_LIB := -lGLESv3
+   else
+      GL_LIB := -lGLESv2
    endif
   
    HAVE_NEON = 1
@@ -326,6 +337,10 @@ else ifneq (,$(findstring RK,$(platform)))
    else ifneq (,$(findstring RK3288,$(platform)))
       CPUFLAGS += -march=armv7ve -mtune=cortex-a17 -mfloat-abi=hard -mfpu=neon-vfpv4
       GLES3 = 1
+   endif
+
+   ifneq (,$(findstring mesa,$(platform)))
+      COREFLAGS += -DEGL_NO_X11
    endif
 
    GL_LIB := -lGLESv2
@@ -464,14 +479,14 @@ else ifeq ($(platform), emscripten)
 # Windows
 else
    TARGET := $(TARGET_NAME)_libretro.dll
-   LDFLAGS += -shared -static-libgcc -static-libstdc++ -Wl,--version-script=$(LIBRETRO_DIR)/link.T -lwinmm -lgdi32
+   LDFLAGS += -shared -static-libgcc -static-libstdc++ -Wl,--version-script=$(LIBRETRO_DIR)/link.T #-static -lmingw32 -lSDL2main -lSDL2 -mwindows -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid  -lsdl2_net -lsdl2 -lws2_32 -lSetupapi -lIPHLPAPI
    GL_LIB := -lopengl32
    
    ifeq ($(MSYSTEM),MINGW64)
       CC ?= x86_64-w64-mingw32-gcc
       CXX ?= x86_64-w64-mingw32-g++
       WITH_DYNAREC = x86_64
-      COREFLAGS += -DWIN64
+      COREFLAGS += -DWIN64 #-DM64P_NETPLAY
       ASFLAGS = -f win64 -d WIN64
       PIC = 1
    else ifeq ($(MSYSTEM),MINGW32)
@@ -487,7 +502,7 @@ else
    HAVE_PARALLEL_RDP = 1
    HAVE_THR_AL = 1
    LLE = 1
-   COREFLAGS += -DOS_WINDOWS -DMINGW
+   COREFLAGS += -DOS_WINDOWS -DMINGW -DUNICODE
    CXXFLAGS += -fpermissive
 endif
 
@@ -528,7 +543,7 @@ endif
 CPUOPTS += -fcommon
 
 # set C/C++ standard to use
-CFLAGS += -std=gnu11 -D_CRT_SECURE_NO_WARNINGS
+CFLAGS += -std=gnu11 -D_CRT_SECURE_NO_WARNINGS -Wno-discarded-qualifiers
 CXXFLAGS += -std=gnu++11 -D_CRT_SECURE_NO_WARNINGS
 
 ifeq ($(HAVE_LTCG),1)
@@ -555,6 +570,7 @@ else
 	LDFLAGS    += $(fpic) -O3 $(CPUOPTS) $(PLATCFLAGS) $(CPUFLAGS)
 endif
 
+-include $(OBJECTS:.o=.d)
 all: $(TARGET)
 $(TARGET): $(OBJECTS)
 
@@ -587,4 +603,3 @@ clean:
 	rm -f $(TARGET)
 
 .PHONY: clean
--include $(OBJECTS:.o=.d)

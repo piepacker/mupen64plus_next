@@ -22,7 +22,7 @@
 
 #pragma once
 
-namespace Vulkan
+namespace Util
 {
 unsigned get_current_thread_index();
 void register_thread_index(unsigned thread_index);

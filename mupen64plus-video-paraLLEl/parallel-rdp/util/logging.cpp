@@ -20,26 +20,26 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "thread_id.hpp"
 #include "logging.hpp"
 
-namespace Vulkan
+namespace Util
 {
-static thread_local unsigned thread_id_to_index = ~0u;
+static thread_local LoggingInterface *logging_iface;
 
-unsigned get_current_thread_index()
+bool interface_log(const char *tag, const char *fmt, ...)
 {
-	auto ret = thread_id_to_index;
-	if (ret == ~0u)
-	{
-		LOGE("Thread does not exist in thread manager or is not the main thread.\n");
-		return 0;
-	}
+	if (!logging_iface)
+		return false;
+
+	va_list va;
+	va_start(va, fmt);
+	bool ret = logging_iface->log(tag, fmt, va);
+	va_end(va);
 	return ret;
 }
 
-void register_thread_index(unsigned index)
+void set_thread_logging_interface(LoggingInterface *iface)
 {
-	thread_id_to_index = index;
+	logging_iface = iface;
 }
 }
