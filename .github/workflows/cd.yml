@@ -19,7 +19,7 @@ jobs:
 
       - run: sudo apt-get update -q
       - run: sudo apt-get install libopenal-dev xorg-dev libgl1-mesa-dev nasm -y --allow-unauthenticated
-      - run: LLE=1 make -j2
+      - run: LLE=1 make -j2 && strip -s mupen64plus_next_libretro.so
 
       - name: ZIP Release
         uses: papeloto/action-zip@v1
