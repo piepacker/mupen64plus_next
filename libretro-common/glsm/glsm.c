@@ -27,6 +27,8 @@
 #include <glsm/glsm.h>
 #include <mupen64plus-next_common.h>
 
+#define JAM_EXPORT_GLES3_ON_GLES2 1
+
 #if defined(HAVE_OPENGLES)
 #if !defined(IOS)
 #include <EGL/egl.h>
@@ -44,6 +46,19 @@ PFNGLBINDIMAGETEXTUREPROC m_glBindImageTexture;
 PFNGLTEXSTORAGE2DMULTISAMPLEPROC m_glTexStorage2DMultisample;
 PFNGLCOPYIMAGESUBDATAPROC m_glCopyImageSubData;
 #endif // defined(HAVE_OPENGLES)
+
+#if JAM_EXPORT_GLES3_ON_GLES2
+typedef void (GL_APIENTRYP PFNGLBINDVERTEXARRAYPROC) (GLuint array);
+GL_APICALL void GL_APIENTRY glBindVertexArray (GLuint array);
+typedef void *(GL_APIENTRYP PFNGLMAPBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
+GL_APICALL void *GL_APIENTRY glMapBufferRange (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
+typedef GLboolean (GL_APIENTRYP PFNGLUNMAPBUFFERPROC) (GLenum target);
+GL_APICALL GLboolean GL_APIENTRY glUnmapBuffer (GLenum target);
+typedef void (GL_APIENTRYP PFNGLGENVERTEXARRAYSPROC) (GLsizei n, GLuint *arrays);
+GL_APICALL void GL_APIENTRY glGenVertexArrays (GLsizei n, GLuint *arrays);
+typedef void (GL_APIENTRYP PFNGLDELETEVERTEXARRAYSPROC) (GLsizei n, const GLuint *arrays);
+GL_APICALL void GL_APIENTRY glDeleteVertexArrays (GLsizei n, const GLuint *arrays);
+#endif
 
 #ifndef GL_DEPTH_CLAMP
 #define GL_DEPTH_CLAMP                    0x864F
@@ -2351,7 +2366,7 @@ void *rglMapBufferRange( 	GLenum target,
 #ifdef GLSM_DEBUG
    log_cb(RETRO_LOG_INFO, "glMapBufferRange.\n");
 #endif
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) && defined(HAVE_OPENGLES3)
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) && defined(HAVE_OPENGLES3) || JAM_EXPORT_GLES3_ON_GLES2
    return glMapBufferRange(target, offset, length, access);
 #else
    printf("WARNING! Not implemented.\n");
@@ -2711,7 +2726,7 @@ void rglBindVertexArray(GLuint array)
 #ifdef GLSM_DEBUG
    log_cb(RETRO_LOG_INFO, "glBindVertexArray.\n");
 #endif
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) && defined(HAVE_OPENGLES3)
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) && defined(HAVE_OPENGLES3) || JAM_EXPORT_GLES3_ON_GLES2
    bindFBO(GL_FRAMEBUFFER);
    gl_state.bindvertex.array = array;
    glBindVertexArray(array);
@@ -2730,7 +2745,7 @@ void rglGenVertexArrays(GLsizei n, GLuint *arrays)
 #ifdef GLSM_DEBUG
    log_cb(RETRO_LOG_INFO, "glGenVertexArrays.\n");
 #endif
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) && defined(HAVE_OPENGLES3)
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) && defined(HAVE_OPENGLES3) || JAM_EXPORT_GLES3_ON_GLES2
    glGenVertexArrays(n, arrays);
 #endif
 }
@@ -2747,7 +2762,7 @@ void rglDeleteVertexArrays(GLsizei n, const GLuint *arrays)
 #ifdef GLSM_DEBUG
    log_cb(RETRO_LOG_INFO, "glDeleteVertexArrays.\n");
 #endif
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) && defined(HAVE_OPENGLES3)
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) && defined(HAVE_OPENGLES3) || JAM_EXPORT_GLES3_ON_GLES2
    glDeleteVertexArrays(n, arrays);
 #endif
 }
@@ -3095,7 +3110,7 @@ static void glsm_state_setup(void)
 static void glsm_state_bind(void)
 {
    unsigned i;
-#ifndef HAVE_OPENGLES2
+#if !defined(HAVE_OPENGLES2) || JAM_EXPORT_GLES3_ON_GLES2
    if (gl_state.bindvertex.array != 0) {
       glBindVertexArray(gl_state.bindvertex.array);
       gl_state.array_buffer = 0;
@@ -3260,7 +3275,7 @@ static void glsm_state_unbind(void)
    glActiveTexture(GL_TEXTURE0);
 
 
-#ifndef HAVE_OPENGLES2
+#if !defined(HAVE_OPENGLES2) || JAM_EXPORT_GLES3_ON_GLES2
    if (gl_state.bindvertex.array != 0)
       glBindVertexArray(0);
    else
